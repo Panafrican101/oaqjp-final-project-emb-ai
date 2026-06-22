@@ -1,5 +1,5 @@
 """EmotionDetection package initializer."""
 
-from .emotion_detection import EmotionDetectionApp, emotion_detector
+from .emotion_detection import emotion_detector
 
-__all__ = ["EmotionDetectionApp", "emotion_detector"]
+__all__ = ["emotion_detector"]
