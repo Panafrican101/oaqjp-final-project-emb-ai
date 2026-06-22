@@ -1,2 +1,0 @@
-Static analysis output:
-Static analysis passed with no issues.

@@ -1,4 +1,3 @@
-RESULT: {'input_text': 'I am happy and excited', 'emotions': {'joy': 1.0, 'sadness': 0.0, 'anger': 0.0, 'fear': 0.0, 'disgust': 0.0}, 'top_emotion': 'joy', 'source': 'heuristic', 'status_code': 200}
 TYPE: dict
 STATUS_CODE: 200
 TOP_EMOTION: joy

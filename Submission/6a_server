@@ -22,7 +22,7 @@ def sent_analyzer() -> str:
     response = emotion_detector(text_to_analyse)
 
     if response["dominant_emotion"] is None:
-        return "Invalid text! Please try again."
+        return "Invalid input! Try again."
 
     return (
         "For the given statement, the system response is "
