@@ -1,4 +1,7 @@
-IMPORT: EmotionDetection package imported successfully
-MODULE: EmotionDetection.emotion_detection
-CALLABLE: True
-PACKAGE VALID: True
+(base) theia@theiadocker-alkebular:/home/project/final_project$ python3
+Python 3.11.9 (main, Apr  9 2024, 08:55:58) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from EmotionDetection.emotion_detection import emotion_detector
+>>> emotion_detector("I am really mad at you")
+{'anger': 0.7627841, 'disgust': 0.052921973, 'fear': 0.04157938, 'joy': 0.026117131, 'sadness': 0.05701466, 'dominant_emotion': 'anger'}
+>>> 
