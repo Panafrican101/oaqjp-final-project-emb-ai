@@ -8,7 +8,7 @@ from typing import Any
 
 from flask import Flask, jsonify, render_template_string, request
 
-from EmotionDetection import emotion_detector
+from EmotionDetection.emotion_detection import emotion_detector
 
 
 APP = Flask(__name__)
@@ -17,17 +17,31 @@ INDEX_HTML = """
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Emotion Detection</title>
 </head>
 <body>
   <h1>Emotion Detection</h1>
-  <form action="/analyze" method="post">
-    <label for="text">Enter text:</label>
-    <textarea id="text" name="text" rows="4" cols="50"></textarea>
+  <form action="/emotionDetector" method="post">
+    <label for="text">Enter text:</label><br />
+    <textarea id="text" name="text" rows="4" cols="50">
+      {{ text or '' }}
+    </textarea>
     <br />
     <button type="submit">Analyze</button>
   </form>
+  {% if error %}
+    <p style="color: red; font-weight: bold;">{{ error }}</p>
+  {% endif %}
+  {% if result %}
+    <h2>Analysis Result</h2>
+    <p>Top emotion: {{ result.top_emotion }}</p>
+    <ul>
+      {% for emotion, score in result.emotions.items() %}
+        <li>{{ emotion }}: {{ score }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 </body>
 </html>
 """
@@ -35,12 +49,44 @@ INDEX_HTML = """
 
 @APP.route("/")
 def index() -> str:
-    return render_template_string(INDEX_HTML)
+    """Render the emotion detection form."""
+    return render_template_string(INDEX_HTML, error=None, result=None, text="")
 
 
-@APP.route("/analyze", methods=["POST"])
-def analyze() -> Any:
+@APP.route("/emotionDetector", methods=["POST"])
+def emotion_detector_route() -> Any:
+    """Handle emotion detection requests and return JSON or page output."""
     text = request.form.get("text", "")
+    if not text or not text.strip():
+        return render_template_string(
+            INDEX_HTML,
+            error="Invalid input! Try again.",
+            result=None,
+            text=text,
+        )
+
+    result = emotion_detector(text)
+    status = result.get("status_code", 200)
+    return (
+        render_template_string(
+            INDEX_HTML,
+            error=None,
+            result=result,
+            text=text,
+        ),
+        status,
+    )
+
+
+@APP.route("/emotionDetector/json", methods=["POST"])
+def emotion_detector_json_route() -> Any:
+    """Return a JSON response for emotion detection requests."""
+    payload = request.get_json(silent=True) or {}
+    text = (
+        payload.get("text")
+        if payload
+        else request.form.get("text", "")
+    )
     if not text or not text.strip():
         return (
             jsonify({"error": "Blank input provided", "status_code": 400}),
@@ -48,8 +94,7 @@ def analyze() -> Any:
         )
 
     result = emotion_detector(text)
-    status = result.get("status_code", 200)
-    return jsonify(result), status
+    return jsonify(result), result.get("status_code", 200)
 
 
 def run_static_analysis() -> str:
@@ -61,10 +106,17 @@ def run_static_analysis() -> str:
         "flake8",
         str(root / "server.py"),
     ]
-    completed = subprocess.run(command, capture_output=True, text=True)
+    completed = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     if completed.returncode != 0:
         raise RuntimeError(
-            f"Static analysis failed:\n{completed.stdout}\n{completed.stderr}"
+            "Static analysis failed:\n"
+            f"{completed.stdout}\n"
+            f"{completed.stderr}"
         )
     return completed.stdout.strip()
 
