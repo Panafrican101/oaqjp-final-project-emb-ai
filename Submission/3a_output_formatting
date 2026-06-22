@@ -6,6 +6,8 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, Optional
 
+import requests
+
 try:
     from ibm_watson import NaturalLanguageUnderstandingV1
     from ibm_watson.natural_language_understanding_v1 import EmotionOptions, Features
@@ -67,10 +69,18 @@ def _heuristic_emotions(text: str) -> Dict[str, float]:
     return _normalize_emotions(scores)
 
 
-def emotion_detector(text: str, api_key: Optional[str] = None, url: Optional[str] = None) -> Dict[str, Any]:
-    """Detect emotion from text using Watson NLP if credentials are available.
+def emotion_detector(
+    text: str,
+    api_endpoint: Optional[str] = None,
+    headers: Optional[Dict[str, str]] = None,
+    api_key: Optional[str] = None,
+    url: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Detect emotion from text and return a formatted result.
 
-    The function returns a standard response dictionary with status_code.
+    If api_endpoint is provided, the function sends a POST request with
+    the text as JSON and the required headers, then parses the JSON
+    response to determine the dominant emotion.
     """
     if not text or not text.strip():
         return {
@@ -80,10 +90,25 @@ def emotion_detector(text: str, api_key: Optional[str] = None, url: Optional[str
         }
 
     cleaned_text = text.strip()
-    emotions: Dict[str, float]
     source = "heuristic"
 
-    if _WATSON_AVAILABLE and api_key and url:
+    if api_endpoint:
+        request_headers = headers or {"Content-Type": "application/json"}
+        response = requests.post(
+            api_endpoint,
+            json={"text": cleaned_text},
+            headers=request_headers,
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        emotions = data.get("emotions")
+        if not isinstance(emotions, dict):
+            emotions = _heuristic_emotions(cleaned_text)
+        else:
+            source = "post"
+    elif _WATSON_AVAILABLE and api_key and url:
         authenticator = IAMAuthenticator(api_key)
         nlu = NaturalLanguageUnderstandingV1(
             version="2021-08-01",
@@ -99,7 +124,7 @@ def emotion_detector(text: str, api_key: Optional[str] = None, url: Optional[str
     else:
         emotions = _heuristic_emotions(cleaned_text)
 
-    top_emotion = max(emotions, key=emotions.get)
+    top_emotion = max(emotions, key=emotions.get) if emotions else "unknown"
     return {
         "input_text": cleaned_text,
         "emotions": emotions,
@@ -113,5 +138,17 @@ class EmotionDetectionApp:
     """Simple wrapper class for the emotion_detector application."""
 
     @staticmethod
-    def analyze(text: str, api_key: Optional[str] = None, url: Optional[str] = None) -> Dict[str, Any]:
-        return emotion_detector(text, api_key=api_key, url=url)
+    def analyze(
+        text: str,
+        api_endpoint: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        api_key: Optional[str] = None,
+        url: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return emotion_detector(
+            text,
+            api_endpoint=api_endpoint,
+            headers=headers,
+            api_key=api_key,
+            url=url,
+        )

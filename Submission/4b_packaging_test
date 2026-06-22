@@ -1,4 +1,4 @@
 IMPORT: EmotionDetection package imported successfully
-MODULE: emotion_detection
+MODULE: EmotionDetection.emotion_detection
 CALLABLE: True
 PACKAGE VALID: True
