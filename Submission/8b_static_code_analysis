@@ -1,0 +1,8 @@
+************* Module server
+server.py:37:0: C0116: Missing function or method docstring (missing-function-docstring)
+server.py:42:0: C0116: Missing function or method docstring (missing-function-docstring)
+server.py:64:16: W1510: 'subprocess.run' used without explicitly defining the value for 'check'. (subprocess-run-check)
+
+-----------------------------------
+Your code has been rated at 9.00/10
+
