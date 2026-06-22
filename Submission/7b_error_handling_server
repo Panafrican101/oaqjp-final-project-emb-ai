@@ -1,5 +1,7 @@
 """Flask deployment for the emotion detection application."""
 
+# pylint: disable=consider-using-f-string
+
 from __future__ import annotations
 import subprocess
 import sys
