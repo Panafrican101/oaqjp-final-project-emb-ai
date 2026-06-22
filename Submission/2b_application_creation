@@ -1,4 +1,7 @@
-COMMAND: from EmotionDetection.emotion_detection import emotion_detector
-IMPORT: OK
-RESULT: {'input_text': 'I am happy and excited', 'emotions': {'joy': 1.0, 'sadness': 0.0, 'anger': 0.0, 'fear': 0.0, 'disgust': 0.0}, 'top_emotion': 'joy', 'source': 'heuristic', 'status_code': 200}
-STATUS: application imported and tested without errors
+(base) theia@theiadocker-alkebular:/home/project/final_project$ python3
+Python 3.11.9 (main, Apr  9 2024, 08:55:58) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from EmotionDetection import emotion_detector
+>>> emotion_detector("I am glad things are going well")
+{'anger': 0.006274985, 'disgust': 0.0025598786, 'fear': 0.012845248, 'joy': 0.9572622, 'sadness': 0.021485049, 'dominant_emotion': 'joy'}
+>>> 
