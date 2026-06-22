@@ -8,7 +8,7 @@ from typing import Any
 
 from flask import Flask, jsonify, render_template_string, request
 
-from EmotionDetection.emotion_detection import emotion_detector
+from EmotionDetection import emotion_detector
 
 
 APP = Flask(__name__)
@@ -35,12 +35,14 @@ INDEX_HTML = """
   {% endif %}
   {% if result %}
     <h2>Analysis Result</h2>
-    <p>Top emotion: {{ result.top_emotion }}</p>
-    <ul>
-      {% for emotion, score in result.emotions.items() %}
-        <li>{{ emotion }}: {{ score }}</li>
-      {% endfor %}
-    </ul>
+    <p>For the given statement, the system response is
+      anger: {{ result.anger }},
+      disgust: {{ result.disgust }},
+      fear: {{ result.fear }},
+      joy: {{ result.joy }} and
+      sadness: {{ result.sadness }}.
+      The dominant emotion is <strong>{{ result.dominant_emotion }}</strong>.
+    </p>
   {% endif %}
 </body>
 </html>
@@ -66,15 +68,18 @@ def emotion_detector_route() -> Any:
         )
 
     result = emotion_detector(text)
-    status = result.get("status_code", 200)
-    return (
-        render_template_string(
+    if result.get("dominant_emotion") is None:
+        return render_template_string(
             INDEX_HTML,
-            error=None,
-            result=result,
+            error="Invalid input! Try again.",
+            result=None,
             text=text,
-        ),
-        status,
+        )
+    return render_template_string(
+        INDEX_HTML,
+        error=None,
+        result=result,
+        text=text,
     )
 
 
@@ -94,7 +99,9 @@ def emotion_detector_json_route() -> Any:
         )
 
     result = emotion_detector(text)
-    return jsonify(result), result.get("status_code", 200)
+    if result.get("dominant_emotion") is None:
+        return jsonify({"error": "Blank input", "status_code": 400}), 400
+    return jsonify(result), 200
 
 
 def run_static_analysis() -> str:
